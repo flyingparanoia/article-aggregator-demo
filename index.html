@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>网页正文提取演示 · Jina.ai 版</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+  <div class="max-w-3xl mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4">🌐 网页正文提取演示</h1>
+    <p class="text-sm text-gray-400 mb-4">
+      请输入一个网页链接，然后点击「提取」按钮。程序会通过 <code>https://r.jina.ai/</code> 自动获取该网页的正文（Markdown 格式）。
+    </p>
+
+    <div class="flex gap-2 mb-6">
+      <input id="urlInput" type="text" placeholder="例如：https://www.nytimes.com/..." 
+             class="flex-1 p-2 text-black rounded" />
+      <button id="fetchBtn" class="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600">提取</button>
+    </div>
+
+    <div id="status" class="text-sm text-yellow-400 mb-4"></div>
+
+    <div id="result" class="prose prose-invert max-w-none"></div>
+  </div>
+
+  <script>
+    const fetchBtn = document.getElementById("fetchBtn");
+    const urlInput = document.getElementById("urlInput");
+    const statusDiv = document.getElementById("status");
+    const resultDiv = document.getElementById("result");
+
+    async function fetchArticle(url) {
+      try {
+        statusDiv.textContent = "⏳ 正在提取内容，请稍候...";
+        resultDiv.innerHTML = "";
+
+        // 调用 Jina API，获取 Markdown 文本
+        const res = await fetch(`https://r.jina.ai/${url}`);
+        if (!res.ok) throw new Error("提取失败，可能链接无效或被屏蔽。");
+        const mdText = await res.text();
+
+        // 渲染为 HTML
+        resultDiv.innerHTML = marked.parse(mdText);
+        statusDiv.textContent = "✅ 提取完成";
+      } catch (err) {
+        statusDiv.textContent = "❌ 错误：" + err.message;
+      }
+    }
+
+    fetchBtn.addEventListener("click", () => {
+      const url = urlInput.value.trim();
+      if (!url) {
+        statusDiv.textContent = "⚠️ 请输入有效的网页链接";
+        return;
+      }
+      fetchArticle(url);
+    });
+  </script>
+</body>
+</html>
